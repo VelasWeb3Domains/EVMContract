@@ -1191,6 +1191,49 @@ contract CallRegisterController is AdminControl
 		return _balance;
 	}
 	
+	function getRewardbyInviter(string memory inviter) public view returns (address, uint256){
+		
+		uint256 reward = 0;
+		
+		address result = address(0);
+		
+		if (bytes(inviter).length != 0)
+		{
+			string memory _inviter = StringUtil.toLower(inviter);
+			
+			bool __exist = IRegisterController(_contractRegister).exists(genTokenId(_inviter));
+			
+			if (__exist == true) 
+			{
+				result = IRegisterController(_contractRegister).getOwner(_inviter);
+
+				uint256 _balance = IERC721(_contractRegister).balanceOf(result);
+				
+				if (_balance > 0)
+				{
+					reward = 10;
+					
+					if (_balance >= 50 && _balance < 100){
+							reward = 15;
+					}
+						
+					if (_balance >= 100 && _balance < 300){
+							reward = 20;
+					}
+						
+					if (_balance >= 300){
+							reward = 25;
+					}
+						
+					if (_balance >= 1000){
+							reward = 40;
+					}
+				}
+			}
+		}
+		return (result, reward);
+	}
+	
 	function getOwner(string memory domain) external view returns (address){
 		return IRegisterController(_contractRegister).getOwner(domain);
 	}
@@ -1293,6 +1336,7 @@ contract CallRegisterController is AdminControl
 		if (_length == 2)
 		{
 			require(_saleTwoCharIsActive == true, "Two characters need to be allowed to buy");
+			
 			uint256 __price2 = getPrice().mul(_2chartimes);
 			if (discount > 0){
 				amountdiscount = __price2 * (discount/100);
@@ -1332,44 +1376,17 @@ contract CallRegisterController is AdminControl
 		}
 
 	    IRegisterController(_contractRegister).registerDomain(to, _domain, _tld);
-		
-		// inviter
-		
-	    if (bytes(inviter).length != 0 && _isShared == true)
+
+	    if (_isShared == true)
 		{
-			string memory _inviter = StringUtil.toLower(inviter);
+			uint256 reward;
+			address result;
 			
-			bool __exist = IRegisterController(_contractRegister).exists(genTokenId(_inviter));
-			
-			if (__exist == true) 
-			{
-				address result = IRegisterController(_contractRegister).getOwner(_inviter) returns () 
-
-				uint256 _balance = IERC721(_contractRegister).balanceOf(result);
-				
-				if (_balance > 0)
-				{
-					uint256 reward = 10;
-					if (_balance >= 50 && _balance < 100){
-							reward = 15;
-					}
-						
-					if (_balance >= 100 && _balance < 300){
-							reward = 20;
-					}
-						
-					if (_balance >= 300){
-							reward = 25;
-					}
-						
-					if (_balance >= 1000){
-							reward = 40;
-					}
-
-					uint256 amountreward = (amount - amountdiscount) * reward/100;
-						
-					payable(result).transfer(amountreward);
-				}
+			(result, reward) = getRewardbyInviter(inviter);
+					
+			if (reward > 0){
+				uint256 amountreward = (amount - amountdiscount) * reward/100;
+				payable(result).transfer(amountreward);
 			}
 		}
     }
