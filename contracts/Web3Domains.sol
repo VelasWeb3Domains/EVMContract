@@ -2410,7 +2410,7 @@ contract Web3Domains is ERC721, ERC721Enumerable, AdminControl, RecordStorage, W
         _;
     }
 
-    constructor() ERC721("Velas Name Service (.movr)", "VNS") {
+    constructor() ERC721("Velas Name Service (.vlx)", "VNS") {
 		
 	}
 	
